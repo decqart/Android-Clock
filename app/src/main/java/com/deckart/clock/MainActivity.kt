@@ -95,33 +95,43 @@ class StopWatch : Fragment(R.layout.stop_watch) {
         super.onViewCreated(view, savedInstanceState)
 
         val txt: TextView? = activity?.findViewById(R.id.texty)
-        val button: Button? = activity?.findViewById(R.id.button)
-        val df: DateFormat = SimpleDateFormat("HH:mm:ss")
+        val button: Button? = activity?.findViewById(R.id.sw_button)
+        val button2: Button? = activity?.findViewById(R.id.lap_button)
+        val df: DateFormat = SimpleDateFormat("mm:ss.SSS")
         df.timeZone = TimeZone.getTimeZone("GMT")
 
-        var seconds = 0
+        var millis: Long = 0
         var running = false
 
-        Thread {
-            while (true) {
-                if (running) {
-                    val date = df.format(seconds * 1000)
-                    txt?.post { txt.text = date }
-                    Thread.sleep(1000)
-                    seconds++
+        button?.setOnClickListener {
+            val thread = Thread {
+                while (running) {
+                    val date = df.format(millis)
+                    txt?.post { txt.text = date.substring(0, date.length-1) }
+                    Thread.sleep(1)
+                    millis++
                 }
             }
-        }.start()
 
-        button?.setOnClickListener {
-            if (button.text == "Start") {
+            if (button.text == "Start" || button.text == "Resume") {
                 button.text = "Stop"
+                button2?.text = "Lap"
+                button2?.isEnabled = true
                 running = true
-            } else {
-                button.text = "Start"
+                thread.start()
+            } else if (button.text == "Stop") {
+                button.text = "Resume"
+                button2?.text = "Reset"
                 running = false
-                seconds = 0
-                txt?.text = "00:00:00"
+                thread.join()
+            }
+        }
+
+        button2?.setOnClickListener {
+            if (button2.text == "Reset") {
+                button?.text = "Start"
+                millis = 0
+                txt?.text = "00:00.00"
             }
         }
     }
