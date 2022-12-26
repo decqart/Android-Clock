@@ -5,8 +5,6 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
 import android.view.View
-import android.view.View.INVISIBLE
-import android.view.View.VISIBLE
 import android.widget.Button
 import android.widget.NumberPicker
 import android.widget.TextView
@@ -45,39 +43,49 @@ class MainActivity : AppCompatActivity() {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 if (tab?.position == 0) {
                     supportFragmentManager.commit {
-                        hide(stopWatch)
-                        hide(timer)
                         show(clock)
                     }
                 }
                 if (tab?.position == 1) {
                     supportFragmentManager.commit {
-                        hide(clock)
-                        hide(timer)
                         show(stopWatch)
                     }
                 }
                 if (tab?.position == 2) {
                     supportFragmentManager.commit {
-                        hide(clock)
-                        hide(stopWatch)
                         show(timer)
                     }
                 }
             }
 
-            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+            override fun onTabUnselected(tab: TabLayout.Tab?) {
+                if (tab?.position == 0) {
+                    supportFragmentManager.commit {
+                        hide(clock)
+                    }
+                }
+                if (tab?.position == 1) {
+                    supportFragmentManager.commit {
+                        hide(stopWatch)
+                    }
+                }
+                if (tab?.position == 2) {
+                    supportFragmentManager.commit {
+                        hide(timer)
+                    }
+                }
+            }
+
             override fun onTabReselected(tab: TabLayout.Tab?) {}
         })
     }
 }
 
 class Clock : Fragment(R.layout.clock) {
-    @SuppressLint("SimpleDateFormat")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val txt: TextView? = activity?.findViewById(R.id.textView)
-        val df: DateFormat = SimpleDateFormat("HH:mm:ss")
+        val df: DateFormat = SimpleDateFormat("HH:mm:ss", Locale.US)
 
         Thread {
             while (true) {
@@ -90,17 +98,17 @@ class Clock : Fragment(R.layout.clock) {
 }
 
 class StopWatch : Fragment(R.layout.stop_watch) {
-    @SuppressLint("SetTextI18n", "SimpleDateFormat")
+    @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val txt: TextView? = activity?.findViewById(R.id.texty)
         val button: Button? = activity?.findViewById(R.id.sw_button)
         val button2: Button? = activity?.findViewById(R.id.lap_button)
-        val df: DateFormat = SimpleDateFormat("mm:ss.SSS")
+        val df: DateFormat = SimpleDateFormat("mm:ss.SSS", Locale.US)
         df.timeZone = TimeZone.getTimeZone("GMT")
 
-        var millis: Long = 0
+        var millis = 0
         var running = false
 
         button?.setOnClickListener {
@@ -130,6 +138,8 @@ class StopWatch : Fragment(R.layout.stop_watch) {
         button2?.setOnClickListener {
             if (button2.text == "Reset") {
                 button?.text = "Start"
+                button2.text = "Lap"
+                button2.isEnabled = false
                 millis = 0
                 txt?.text = "00:00.00"
             }
@@ -154,9 +164,9 @@ class Timer : Fragment(R.layout.timer) {
         val pauseButton: Button? = activity?.findViewById(R.id.pause)
 
         startButton?.setOnClickListener {
-            startButton.visibility = INVISIBLE
-            cancelButton?.visibility = VISIBLE
-            pauseButton?.visibility = VISIBLE
+            startButton.visibility = View.INVISIBLE
+            cancelButton?.visibility = View.VISIBLE
+            pauseButton?.visibility = View.VISIBLE
             val timeInMillis = secondPicker?.value?.let { num ->
                 minutePicker?.value?.times(60000)?.plus(num.times(1000))?.let {
                     hourPicker?.value?.times(3_600_000)
@@ -176,9 +186,9 @@ class Timer : Fragment(R.layout.timer) {
         }
 
         cancelButton?.setOnClickListener {
-            startButton?.visibility = VISIBLE
-            cancelButton.visibility = INVISIBLE
-            pauseButton?.visibility = INVISIBLE
+            startButton?.visibility = View.VISIBLE
+            cancelButton.visibility = View.INVISIBLE
+            pauseButton?.visibility = View.INVISIBLE
             pauseButton?.text = "Pause"
         }
 
