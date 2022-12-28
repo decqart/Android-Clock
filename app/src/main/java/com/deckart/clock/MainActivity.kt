@@ -2,8 +2,6 @@ package com.deckart.clock
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.os.CountDownTimer
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.NumberPicker
@@ -41,38 +39,18 @@ class MainActivity : AppCompatActivity() {
 
         tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
-                if (tab?.position == 0) {
-                    supportFragmentManager.commit {
-                        show(clock)
-                    }
-                }
-                if (tab?.position == 1) {
-                    supportFragmentManager.commit {
-                        show(stopWatch)
-                    }
-                }
-                if (tab?.position == 2) {
-                    supportFragmentManager.commit {
-                        show(timer)
-                    }
+                supportFragmentManager.commit {
+                    if (tab?.position == 0) show(clock)
+                    if (tab?.position == 1) show(stopWatch)
+                    if (tab?.position == 2) show(timer)
                 }
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab?) {
-                if (tab?.position == 0) {
-                    supportFragmentManager.commit {
-                        hide(clock)
-                    }
-                }
-                if (tab?.position == 1) {
-                    supportFragmentManager.commit {
-                        hide(stopWatch)
-                    }
-                }
-                if (tab?.position == 2) {
-                    supportFragmentManager.commit {
-                        hide(timer)
-                    }
+                supportFragmentManager.commit {
+                    if (tab?.position == 0) hide(clock)
+                    if (tab?.position == 1) hide(stopWatch)
+                    if (tab?.position == 2) hide(timer)
                 }
             }
 
@@ -152,6 +130,8 @@ class Timer : Fragment(R.layout.timer) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val timerText: TextView? = activity?.findViewById(R.id.timerText)
+
         val hourPicker: NumberPicker? = activity?.findViewById(R.id.hour_picker)
         hourPicker?.maxValue = 99
         val minutePicker: NumberPicker? = activity?.findViewById(R.id.minute_picker)
@@ -163,33 +143,55 @@ class Timer : Fragment(R.layout.timer) {
         val cancelButton: Button? = activity?.findViewById(R.id.cancel)
         val pauseButton: Button? = activity?.findViewById(R.id.pause)
 
+        var running: Boolean
+
         startButton?.setOnClickListener {
+            running = true
             startButton.visibility = View.INVISIBLE
             cancelButton?.visibility = View.VISIBLE
             pauseButton?.visibility = View.VISIBLE
-            val timeInMillis = secondPicker?.value?.let { num ->
-                minutePicker?.value?.times(60000)?.plus(num.times(1000))?.let {
-                    hourPicker?.value?.times(3_600_000)
-                        ?.plus(it)
+            hourPicker?.visibility = View.INVISIBLE
+            minutePicker?.visibility = View.INVISIBLE
+            secondPicker?.visibility = View.INVISIBLE
+            timerText?.visibility = View.VISIBLE
+            var hour = hourPicker?.value
+            var minute = minutePicker?.value
+            var second = secondPicker?.value
+            val thread = Thread {
+                while (running) {
+                    var hourString = hour.toString()
+                    if (hourString.length < 2) hourString = "0$hourString"
+                    var minuteString = minute.toString()
+                    if (minuteString.length < 2) minuteString = "0$minuteString"
+                    var secondString = second.toString()
+                    if (secondString.length < 2) secondString = "0$secondString"
+                    val date = "$hourString:$minuteString:$secondString"
+                    timerText?.post { timerText.text = date }
+                    Thread.sleep(1000)
+                    second = second?.minus(1)
+                    if (second == 0) {
+                        minute = minute?.minus(1)
+                        second = 59
+                    }
+                    if (minute == 0) {
+                        hour = hour?.minus(1)
+                        minute = 59
+                    }
                 }
-            }?.toLong()
-
-            object : CountDownTimer(timeInMillis!!, 1000) {
-                override fun onTick(millisUntilFinished: Long) {
-                    Log.e("seconds remaining: " + millisUntilFinished / 1000, "TAG")
-                }
-
-                override fun onFinish() {
-                    Log.e("YAY", "finished")
-                }
-            }.start()
+            }
+            thread.start()
         }
 
         cancelButton?.setOnClickListener {
             startButton?.visibility = View.VISIBLE
             cancelButton.visibility = View.INVISIBLE
             pauseButton?.visibility = View.INVISIBLE
+            hourPicker?.visibility = View.VISIBLE
+            minutePicker?.visibility = View.VISIBLE
+            secondPicker?.visibility = View.VISIBLE
+            timerText?.visibility = View.INVISIBLE
             pauseButton?.text = "Pause"
+            running = false
         }
 
         pauseButton?.setOnClickListener {
