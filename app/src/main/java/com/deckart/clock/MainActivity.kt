@@ -177,6 +177,9 @@ class Timer : Fragment(R.layout.timer) {
                             second = 60
                         }
                         second = second?.minus(1)
+                        if (timerText?.text == "00:00:00") {
+                            running = false
+                        }
                     }
                 }
             }.start()
