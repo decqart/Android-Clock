@@ -167,7 +167,6 @@ class Timer : Fragment(R.layout.timer) {
                     if (secondString.length < 2) secondString = "0$secondString"
                     timerText?.post { timerText.text = "$hourString:$minuteString:$secondString" }
                     Thread.sleep(1000)
-                    second = second?.minus(1)
                     if (second == 0) {
                         minute = minute?.minus(1)
                         second = 59
@@ -176,6 +175,7 @@ class Timer : Fragment(R.layout.timer) {
                         hour = hour?.minus(1)
                         minute = 59
                     }
+                    second = second?.minus(1)
                 }
             }
             thread.start()
