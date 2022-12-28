@@ -10,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import com.google.android.material.tabs.TabLayout
-import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -63,7 +62,7 @@ class Clock : Fragment(R.layout.clock) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val txt: TextView? = activity?.findViewById(R.id.textView)
-        val df: DateFormat = SimpleDateFormat("HH:mm:ss", Locale.US)
+        val df = SimpleDateFormat("HH:mm:ss", Locale.US)
 
         Thread {
             while (true) {
@@ -83,7 +82,7 @@ class StopWatch : Fragment(R.layout.stop_watch) {
         val txt: TextView? = activity?.findViewById(R.id.texty)
         val button: Button? = activity?.findViewById(R.id.sw_button)
         val button2: Button? = activity?.findViewById(R.id.lap_button)
-        val df: DateFormat = SimpleDateFormat("mm:ss.SSS", Locale.US)
+        val df = SimpleDateFormat("mm:ss.SSS", Locale.US)
         df.timeZone = TimeZone.getTimeZone("GMT")
 
         var millis = 0
@@ -144,6 +143,7 @@ class Timer : Fragment(R.layout.timer) {
         val pauseButton: Button? = activity?.findViewById(R.id.pause)
 
         var running: Boolean
+        var pause = false
 
         startButton?.setOnClickListener {
             running = true
@@ -157,28 +157,29 @@ class Timer : Fragment(R.layout.timer) {
             var hour = hourPicker?.value
             var minute = minutePicker?.value
             var second = secondPicker?.value
-            val thread = Thread {
+            Thread {
                 while (running) {
-                    var hourString = hour.toString()
-                    if (hourString.length < 2) hourString = "0$hourString"
-                    var minuteString = minute.toString()
-                    if (minuteString.length < 2) minuteString = "0$minuteString"
-                    var secondString = second.toString()
-                    if (secondString.length < 2) secondString = "0$secondString"
-                    timerText?.post { timerText.text = "$hourString:$minuteString:$secondString" }
-                    Thread.sleep(1000)
-                    if (second == 0) {
-                        minute = minute?.minus(1)
-                        second = 59
+                    if (!pause) {
+                        var hourString = hour.toString()
+                        if (hourString.length < 2) hourString = "0$hourString"
+                        var minuteString = minute.toString()
+                        if (minuteString.length < 2) minuteString = "0$minuteString"
+                        var secondString = second.toString()
+                        if (secondString.length < 2) secondString = "0$secondString"
+                        timerText?.post { timerText.text = "$hourString:$minuteString:$secondString" }
+                        Thread.sleep(1000)
+                        if (minute == 0 && hour != 0) {
+                            hour = hour?.minus(1)
+                            minute = 60
+                        }
+                        if (second == 0 && minute != 0) {
+                            minute = minute?.minus(1)
+                            second = 60
+                        }
+                        second = second?.minus(1)
                     }
-                    if (minute == 0) {
-                        hour = hour?.minus(1)
-                        minute = 59
-                    }
-                    second = second?.minus(1)
                 }
-            }
-            thread.start()
+            }.start()
         }
 
         cancelButton?.setOnClickListener {
@@ -196,8 +197,10 @@ class Timer : Fragment(R.layout.timer) {
         pauseButton?.setOnClickListener {
             if (pauseButton.text == "Pause") {
                 pauseButton.text = "Resume"
+                pause = true
             } else {
                 pauseButton.text = "Pause"
+                pause = false
             }
         }
     }
