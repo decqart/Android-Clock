@@ -9,6 +9,7 @@
         android:theme="@style/Theme.Clock">
         <activity
             android:name=".MainActivity"
+            android:screenOrientation="portrait"
             android:exported="true"
             android:theme="@style/Theme.Clock.NoActionBar">
             <intent-filter>

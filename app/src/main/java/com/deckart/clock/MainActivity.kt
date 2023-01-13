@@ -66,8 +66,7 @@ class Clock : Fragment(R.layout.clock) {
 
         Thread {
             while (true) {
-                val date = df.format(Calendar.getInstance().time)
-                txt?.post { txt.text = date }
+                txt?.post { txt.text = df.format(Calendar.getInstance().time) }
                 Thread.sleep(1000)
             }
         }.start()
